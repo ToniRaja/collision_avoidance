@@ -1,0 +1,16 @@
+<launch>
+ <!-- Params -->
+  <arg name="enableRviz" default="false"/>
+
+  <!-- Launch the ASV Simulation -->
+  <include  file="$(find multi_robot_system)/launch/turbot_simulation.launch">
+    <!-- <arg name="enableIqua" value="$(arg enableIquaASV)"/>
+    <arg name="place" value="$(arg place)"/>
+    <arg name="robot_name" value="$(arg robot_6)"/> -->
+  </include>
+
+
+  <!-- RViz -->
+  <node if="$(arg enableRviz)" pkg="rviz" type="rviz" name="rviz" args="-d $(find multi_robot_system)/scene/MRS.rviz"/>
+
+</launch>
