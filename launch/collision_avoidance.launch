@@ -1,6 +1,6 @@
 <launch>
  <!-- Params -->
-  <arg name="enableRviz" default="false"/>
+  <arg name="enableRviz" default="true"/>
 
   <!-- Launch the ASV Simulation -->
   <include  file="$(find multi_robot_system)/launch/turbot_simulation.launch">
@@ -9,6 +9,14 @@
     <arg name="robot_name" value="$(arg robot_6)"/> -->
   </include>
 
+  <!-- Launch script -->
+  <node name="collision_avoidance_robot0" pkg="collission_avoidance" type="C_A.py" output="screen">
+    <param name="robot_name" value="robot0"/>
+  </node>
+
+  <node name="collision_avoidance_robot1" pkg="collission_avoidance" type="C_A.py" output="screen">
+    <param name="robot_name" value="robot1"/>
+  </node>
 
   <!-- RViz -->
   <node if="$(arg enableRviz)" pkg="rviz" type="rviz" name="rviz" args="-d $(find multi_robot_system)/scene/MRS.rviz"/>
