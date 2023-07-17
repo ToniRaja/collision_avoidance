@@ -91,6 +91,8 @@ class CA:
                          self.name)
             rospy.signal_shutdown('Error creating client to goto service')
 
+        
+
     def send_goto_strategy(self, position_x, position_y,keep_position):
         # self.disable_all_and_set_idle_srv()
         """Goto to position x, y, z, at velocity vel."""
@@ -137,12 +139,10 @@ class CA:
         if(self.first_time == True and self.robot_name == 'robot0'):
             self.first_time = False
             self.send_goto_strategy(self.robot0_goal_x,self.robot0_goal_y,False)
-            self.robot0_goal_reached = True
             
         elif(self.first_time == True and self.robot_name == 'robot1'):
             self.first_time = False
-            #self.send_goto_strategy(self.robot1_goal_x,self.robot1_goal_y,False)
-            self.robot1_goal_reached = True 
+            #self.send_goto_strategy(self.robot1_goal_x,self.robot1_goal_y,False) 
         
         #Move robot to its goal forcing a collision
         if(self.robot0_goal_reached and self.robot1_goal_reached and self.robot_name == 'robot0' and not self.stop_goto):
@@ -153,7 +153,18 @@ class CA:
     
     def collision_detection(self, msg):
         security_distance = 7.0
-        goal_range = 5.0    
+        goal_range = 5.0 
+
+        #Check if each robot has reached its initial position
+        if self.robot_name == 'robot0' and not self.robot0_goal_reached:
+            goal_distance = sqrt((self.robot0_goal_x - self.pose_x) ** 2 + (self.robot0_goal_y - self.pose_y) ** 2)
+            if goal_distance <= goal_range:
+                self.robot0_goal_reached = True
+        
+        elif self.robot_name == 'robot1' and not self.robot1_goal_reached:
+            goal_distance = sqrt((self.robot1_goal_x - self.pose_x) ** 2 + (self.robot1_goal_y - self.pose_y) ** 2)
+            if goal_distance <= goal_range:
+                self.robot1_goal_reached = True
 
         #When the robot has reached its initial position check if the other robot has reached its initial position aswell
         if self.robot_name == 'robot0' and self.robot0_goal_reached and not self.robot1_goal_reached:
