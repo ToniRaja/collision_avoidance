@@ -8,9 +8,10 @@ from math import *
 from std_srvs.srv import Trigger, TriggerRequest
 from std_msgs.msg import Float32, Bool
 from cola2_msgs.msg import WorldSectionAction,WorldSectionGoal,GoalDescriptor,WorldSectionGoal,WorldSectionActionResult
-from cola2_msgs.msg import  NavSts
+from cola2_msgs.msg import  NavSts, BodyVelocityReq
 from cola2_msgs.srv import Goto, GotoRequest
 from sensor_msgs.msg import BatteryState
+from nav_msgs.msg import Odometry
 import numpy as np
 from std_srvs.srv import Empty, EmptyResponse
 
@@ -45,7 +46,9 @@ class CA:
         self.robot1_goal_y = 0
         self.pose_x = 0
         self.pose_y = 0
-        self.stop_goto_service = False
+        self.stop_goto = False
+        self.vx_obs = 0.0
+        self.vy_obs = 0.0
 
         # Subscriber
         
@@ -56,30 +59,33 @@ class CA:
             queue_size=1)
         
         rospy.Subscriber(
-            '/' + self.robot_name + '/navigator/navigation',
-            NavSts,
-            self.get_pose,
-            queue_size=1)
+                '/' + self.robot_name +'/dynamics/odometry',
+                Odometry,
+                self.get_pose,
+                queue_size=1)
         
         if(self.robot_name == 'robot0'):
             rospy.Subscriber(
-                '/robot1/navigator/navigation',
-                NavSts,
-                self.force_collision,
-                queue_size=1)
+                '/robot1/dynamics/odometry',
+                Odometry,
+                self.collision_detection,
+                queue_size=1)            
         
         elif(self.robot_name == 'robot1'):
             rospy.Subscriber(
-                '/robot0/navigator/navigation',
-                NavSts,
-                self.force_collision,
-                queue_size=1)
+                '/robot0/dynamics/odometry',
+                Odometry,
+                self.collision_detection,
+                queue_size=1)            
 
         # Services clients
         try:
             rospy.wait_for_service('/' + self.robot_name + '/captain/enable_goto', 20)
             self.goto_srv = rospy.ServiceProxy(
                         '/' + self.robot_name + '/captain/enable_goto', Goto)
+            rospy.wait_for_service('/' + self.robot_name + '/captain/disable_goto', 20)
+            self.stop_goto_srv = rospy.ServiceProxy(
+                        '/' + self.robot_name + '/captain/disable_goto', Trigger)
         except rospy.exceptions.ROSException:
             rospy.logerr('%s: error creating client to goto service',
                          self.name)
@@ -127,6 +133,7 @@ class CA:
         # self.robots_information[robot_id][10] = msg.orientation.pitch
         # self.robots_information[robot_id][11] = msg.orientation.yaw
 
+        #Move robot to its initial position
         if(self.first_time == True and self.robot_name == 'robot0'):
             self.first_time = False
             self.send_goto_strategy(self.robot0_goal_x,self.robot0_goal_y,False)
@@ -136,41 +143,124 @@ class CA:
             self.first_time = False
             #self.send_goto_strategy(self.robot1_goal_x,self.robot1_goal_y,False)
             self.robot1_goal_reached = True 
-
-        if(self.robot0_goal_reached and self.robot1_goal_reached and self.robot_name == 'robot0'):
+        
+        #Move robot to its goal forcing a collision
+        if(self.robot0_goal_reached and self.robot1_goal_reached and self.robot_name == 'robot0' and not self.stop_goto):
             self.send_goto_strategy(self.robot1_goal_x,self.robot1_goal_y,False)
         
-        elif(self.robot0_goal_reached and self.robot1_goal_reached and self.robot_name == 'robot1'):
+        elif(self.robot0_goal_reached and self.robot1_goal_reached and self.robot_name == 'robot1' and not self.stop_goto):
             self.send_goto_strategy(self.robot0_goal_x,self.robot0_goal_y,False)
     
-    def force_collision(self, msg):
+    def collision_detection(self, msg):
+        security_distance = 7.0
+        goal_range = 5.0    
+
+        #When the robot has reached its initial position check if the other robot has reached its initial position aswell
         if self.robot_name == 'robot0' and self.robot0_goal_reached and not self.robot1_goal_reached:
-            if msg.position.north <= self.robot1_goal_x + 5 and msg.position.north >= self.robot1_goal_x - 5 and msg.position.east <= self.robot1_goal_y + 5 and msg.position.east >= self.robot1_goal_y - 5:
+            goal_distance = sqrt((self.robot1_goal_x - msg.pose.pose.position.x) ** 2 + (self.robot1_goal_y - msg.pose.pose.position.y) ** 2)
+            if goal_distance <= goal_range:
                 self.robot1_goal_reached = True
 
         elif self.robot_name == 'robot1' and self.robot1_goal_reached and not self.robot0_goal_reached:
-            if msg.position.north <= self.robot0_goal_x + 5 and msg.position.north >= self.robot0_goal_x - 5 and msg.position.east <= self.robot0_goal_y + 5 and msg.position.east >= self.robot0_goal_y - 5:
+            goal_distance = sqrt((self.robot0_goal_x - msg.pose.pose.position.x) ** 2 + (self.robot0_goal_y - msg.pose.pose.position.y) ** 2)
+            if goal_distance <= goal_range:
                 self.robot0_goal_reached = True
 
-        if self.robot0_goal_reached and self.robot1_goal_reached and not self.stop_goto_service:
-            self.update_goto_service_status(self.pose_x, self.pose_y, msg.position.north, msg.position.east)
+        #Check if there's collision
+        if self.robot0_goal_reached and self.robot1_goal_reached:
+            distance = sqrt((msg.pose.pose.position.x - self.pose_x) ** 2 + (msg.pose.pose.position.y - self.pose_y) ** 2)
 
-    def update_goto_service_status(self, pose_x, pose_y, other_pose_x, other_pose_y):
-        security_distance = 5
+            if distance <= security_distance:
+                if not self.stop_goto: #Shutdown goto service
+                    self.stop_goto = True
+                    self.stop_goto_srv()
+                
+                self.potential_fields(distance, security_distance, msg.pose.pose.position.x, msg.pose.pose.position.y)
+            
+            elif self.stop_goto:
+                self.stop_goto = False
+                
 
-        distance = sqrt((other_pose_x - pose_x) ** 2 + (other_pose_y - pose_y) ** 2)
+    def potential_fields(self, distance, CRIT_DIST, obs_posx, obs_posy):
+        W1 = 1.5
+        W2 = 3.0
+        K_ROT_MAX = 0.25
+        K_ROT_MIN = 0.1
+        V_MAX = 0.5
+        ORI_ERROR = 0.45
 
-        if distance <= security_distance:
-            self.stop_goto_service = True
-            self.goto_srv.close()
-            print('hola')
+        set_vel_msg = BodyVelocityReq()
+        
+        Vi = (CRIT_DIST - distance)/CRIT_DIST
 
+        Vix = Vi*(self.pose_x - obs_posx)/distance
+        Viy = Vi*(self.pose_y - obs_posy)/distance
+
+        self.vx_obs += Vix
+        self.vy_obs += Viy
+
+        if(self.robot_name == 'robot0'):
+            vx_obj = cos(atan2(self.robot1_goal_y - self.pose_y, self.robot1_goal_x - self.pose_x))
+            vy_obj = sin(atan2(self.robot1_goal_y - self.pose_y, self.robot1_goal_x - self.pose_x))
+        
+        elif(self.robot_name == 'robot1'):
+            vx_obj = cos(atan2(self.robot0_goal_y - self.pose_y, self.robot0_goal_x - self.pose_x))
+            vy_obj = sin(atan2(self.robot0_goal_y - self.pose_y, self.robot0_goal_x - self.pose_x))
+
+        vfx = W1*vx_obj + W2*self.vx_obs
+        vfy = W1*vy_obj + W2*self.vy_obs
+
+        robot_orientation = 2.0*atan2(self.ori_z, self.ori_w)
+        
+        direction_angle = atan2(vfy,vfx)
+        direction_angle = atan2(sin(direction_angle - robot_orientation),cos(direction_angle - robot_orientation))
+
+        if(abs(direction_angle) > ORI_ERROR):
+            set_vel_msg.header.frame_id = rospy.get_namespace() + "base_link"
+            set_vel_msg.header.stamp = rospy.Time.now()
+            set_vel_msg.goal.priority = 40
+            set_vel_msg.goal.requester = rospy.get_name() + "_velocity_req"
+            set_vel_msg.disable_axis.x = True
+            set_vel_msg.disable_axis.y = True
+            set_vel_msg.disable_axis.z = True
+            set_vel_msg.disable_axis.roll = True
+            set_vel_msg.disable_axis.pitch = True
+            set_vel_msg.disable_axis.yaw = False
+            set_vel_msg.twist.linear.x = 0.0
+            set_vel_msg.twist.linear.y = 0.0
+            set_vel_msg.twist.linear.z = 0.0
+            set_vel_msg.twist.angular.x = 0.0
+            set_vel_msg.twist.angular.y = 0.0
+            set_vel_msg.twist.angular.z = K_ROT_MAX*V_MAX*direction_angle
+
+        
         else:
-            self.stop_goto_service = False
+            set_vel_msg.header.frame_id = rospy.get_namespace() + "base_link"
+            set_vel_msg.header.stamp = rospy.Time.now()
+            set_vel_msg.goal.priority = 40
+            set_vel_msg.goal.requester = rospy.get_name() + "_velocity_req"
+            set_vel_msg.disable_axis.x = False
+            set_vel_msg.disable_axis.y = True
+            set_vel_msg.disable_axis.z = True
+            set_vel_msg.disable_axis.roll = True
+            set_vel_msg.disable_axis.pitch = True
+            set_vel_msg.disable_axis.yaw = False
+            set_vel_msg.twist.linear.x = V_MAX
+            set_vel_msg.twist.linear.y = 0.0
+            set_vel_msg.twist.linear.z = 0.0
+            set_vel_msg.twist.angular.x = 0.0
+            set_vel_msg.twist.angular.y = 0.0
+            set_vel_msg.twist.angular.z = K_ROT_MIN*V_MAX*direction_angle
+
+        pub = rospy.Publisher('/' + self.robot_name + '/controller/body_velocity_req', BodyVelocityReq, queue_size=1)
+        pub.publish(set_vel_msg)
     
     def get_pose(self, msg):
-        self.pose_x = msg.position.north
-        self.pose_y = msg.position.east
+
+        self.pose_x = msg.pose.pose.position.x
+        self.pose_y = msg.pose.pose.position.y
+        self.ori_z = msg.pose.pose.orientation.z
+        self.ori_w = msg.pose.pose.orientation.w
   
     # def get_param(self, param_name, default = None):
     #     if rospy.has_param(param_name):
