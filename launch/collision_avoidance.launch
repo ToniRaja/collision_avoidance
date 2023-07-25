@@ -1,6 +1,8 @@
 <launch>
  <!-- Params -->
   <arg name="enableRviz" default="true"/>
+  <arg name="num_robots" default="3"/>
+  <arg name="CRIT_DIST" default="7"/>
 
   <!-- Launch the ASV Simulation -->
   <include  file="$(find multi_robot_system)/launch/turbot_simulation.launch">
@@ -12,10 +14,23 @@
   <!-- Launch script -->
   <node name="collision_avoidance_robot0" pkg="collission_avoidance" type="C_A.py" output="screen">
     <param name="robot_name" value="robot0"/>
+    <param name="path" value="path0"/>
+    <param name="num_robots" value="$(arg num_robots)"/>
+    <param name="CRIT_DIST" value="$(arg CRIT_DIST)"/>
   </node>
 
   <node name="collision_avoidance_robot1" pkg="collission_avoidance" type="C_A.py" output="screen">
     <param name="robot_name" value="robot1"/>
+    <param name="path" value="path1"/>
+    <param name="num_robots" value="$(arg num_robots)"/>
+    <param name="CRIT_DIST" value="$(arg CRIT_DIST)"/>    
+  </node>
+
+  <node name="collision_avoidance_robot2" pkg="collission_avoidance" type="C_A.py" output="screen">
+    <param name="robot_name" value="robot2"/>
+    <param name="path" value="path2"/>
+    <param name="num_robots" value="$(arg num_robots)"/>
+    <param name="CRIT_DIST" value="$(arg CRIT_DIST)"/>    
   </node>
 
   <!-- RViz -->
