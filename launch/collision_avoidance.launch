@@ -1,8 +1,8 @@
 <launch>
  <!-- Params -->
   <arg name="enableRviz" default="true"/>
-  <arg name="num_robots" default="3"/>
-  <arg name="CRIT_DIST" default="7"/>
+  <arg name="num_robots" default="8"/>
+  <arg name="CRIT_DIST" default="7.0"/>
 
   <!-- Launch the ASV Simulation -->
   <include  file="$(find multi_robot_system)/launch/turbot_simulation.launch">
@@ -17,20 +17,79 @@
     <param name="path" value="path0"/>
     <param name="num_robots" value="$(arg num_robots)"/>
     <param name="CRIT_DIST" value="$(arg CRIT_DIST)"/>
+    <param name="initial_x" value="0.0"/>
+    <param name="initial_y" value="50.0"/>
+    <param name="initial_z" value="0.0"/>
   </node>
 
   <node name="collision_avoidance_robot1" pkg="collission_avoidance" type="C_A.py" output="screen">
     <param name="robot_name" value="robot1"/>
     <param name="path" value="path1"/>
     <param name="num_robots" value="$(arg num_robots)"/>
-    <param name="CRIT_DIST" value="$(arg CRIT_DIST)"/>    
+    <param name="CRIT_DIST" value="$(arg CRIT_DIST)"/>
+    <param name="initial_x" value="20.0"/>
+    <param name="initial_y" value="50.0"/>
+    <param name="initial_z" value="0.0"/>    
   </node>
 
   <node name="collision_avoidance_robot2" pkg="collission_avoidance" type="C_A.py" output="screen">
     <param name="robot_name" value="robot2"/>
     <param name="path" value="path2"/>
     <param name="num_robots" value="$(arg num_robots)"/>
-    <param name="CRIT_DIST" value="$(arg CRIT_DIST)"/>    
+    <param name="CRIT_DIST" value="$(arg CRIT_DIST)"/>
+    <param name="initial_x" value="30.0"/>
+    <param name="initial_y" value="50.0"/>
+    <param name="initial_z" value="10.0"/>    
+  </node>
+
+  <node name="collision_avoidance_robot3" pkg="collission_avoidance" type="C_A.py" output="screen">
+    <param name="robot_name" value="robot3"/>
+    <param name="path" value="path3"/>
+    <param name="num_robots" value="$(arg num_robots)"/>
+    <param name="CRIT_DIST" value="$(arg CRIT_DIST)"/>
+    <param name="initial_x" value="30.0"/>
+    <param name="initial_y" value="0.0"/>
+    <param name="initial_z" value="15.0"/>    
+  </node>
+
+  <node name="collision_avoidance_robot4" pkg="collission_avoidance" type="C_A.py" output="screen">
+    <param name="robot_name" value="robot4"/>
+    <param name="path" value="path4"/>
+    <param name="num_robots" value="$(arg num_robots)"/>
+    <param name="CRIT_DIST" value="$(arg CRIT_DIST)"/>
+    <param name="initial_x" value="30.0"/>
+    <param name="initial_y" value="0.0"/>
+    <param name="initial_z" value="5.0"/>    
+  </node>
+
+  <node name="collision_avoidance_robot5" pkg="collission_avoidance" type="C_A.py" output="screen">
+    <param name="robot_name" value="robot5"/>
+    <param name="path" value="path5"/>
+    <param name="num_robots" value="$(arg num_robots)"/>
+    <param name="CRIT_DIST" value="$(arg CRIT_DIST)"/>
+    <param name="initial_x" value="50.0"/>
+    <param name="initial_y" value="50.0"/>
+    <param name="initial_z" value="0.0"/>    
+  </node>
+
+  <node name="collision_avoidance_robot6" pkg="collission_avoidance" type="C_A.py" output="screen">
+    <param name="robot_name" value="robot6"/>
+    <param name="path" value="path6"/>
+    <param name="num_robots" value="$(arg num_robots)"/>
+    <param name="CRIT_DIST" value="$(arg CRIT_DIST)"/>
+    <param name="initial_x" value="50.0"/>
+    <param name="initial_y" value="40.0"/>
+    <param name="initial_z" value="0.0"/>    
+  </node>
+
+  <node name="collision_avoidance_robot7" pkg="collission_avoidance" type="C_A.py" output="screen">
+    <param name="robot_name" value="robot7"/>
+    <param name="path" value="path7"/>
+    <param name="num_robots" value="$(arg num_robots)"/>
+    <param name="CRIT_DIST" value="$(arg CRIT_DIST)"/>
+    <param name="initial_x" value="50.0"/>
+    <param name="initial_y" value="30.0"/>
+    <param name="initial_z" value="0.0"/>    
   </node>
 
   <!-- RViz -->
