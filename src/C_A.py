@@ -7,7 +7,7 @@ from cola2_lib.utils.ned import NED
 import matplotlib.pyplot as plt
 from math import *
 from std_srvs.srv import Trigger, TriggerRequest
-from std_msgs.msg import Float32, Bool, String
+from std_msgs.msg import Float32, Bool, String, Int32
 from cola2_msgs.msg import WorldSectionAction,WorldSectionGoal,GoalDescriptor,WorldSectionGoal,WorldSectionActionResult
 from cola2_msgs.msg import  NavSts, BodyVelocityReq, WorldWaypointActionGoal
 from cola2_msgs.srv import Goto, GotoRequest
@@ -23,13 +23,14 @@ class CA:
 
     def __init__(self, name, robot_name):
         self.robot_name = robot_name
-        self.first_time = True
-        self.initial_reached = False
-        self.keep_position = False 
-        self.stop_keep_position = False
-        self.navigate = False 
-        self.enable_CA = False
-        self.stop_goto = False
+        self.first_time = True # To send the robot to its initial position
+        self.initial_reached = False # To indicate the robot has reached its initial position
+        self.enable_CA = False # To enable collision avoidance after every robot has reached its initial position
+        self.enable_navigation = False # To enable navigation after every robot has reached its initial position
+        self.navigate = False  # To navigate through the robot path
+        self.keep_position = False  # To indicate whenever the robot must keep position        
+        self.stop_goto = False # To indicate whenever the robot must stop navigating
+        self.final_reached = False # To indicate the robot has reached the last position of the robot path
         self.pos_x = 0.0
         self.pos_y = 0.0
         self.pos_z = 0.0
@@ -43,15 +44,29 @@ class CA:
         self.path_x = []
         self.path_y = []
         self.path_z = []
+        self.obj_distance = 0.0
         
         # Get Params
         
         self.num_robots = rospy.get_param('~num_robots')
         self.CRIT_DIST = rospy.get_param('~CRIT_DIST')
+        self.GOTO_VEL = rospy.get_param('~GOTO_VEL')
+        self.CA_VEL = rospy.get_param('~CA_VEL')
         self.path = rospy.get_param('~path')
         self.initial_x = rospy.get_param('~initial_x')
         self.initial_y = rospy.get_param('~initial_y') 
-        self.initial_z = rospy.get_param('~initial_z')       
+        self.initial_z = rospy.get_param('~initial_z')
+        self.W1 = rospy.get_param('~W1')
+        self.W2 = rospy.get_param('~W2')
+        self.K_ROT_MAX = rospy.get_param('~K_ROT_MAX')
+        self.K_ROT_MIN = rospy.get_param('~K_ROT_MIN')
+        self.AZIMUTH_ERROR = rospy.get_param('~AZIMUTH_ERROR')
+        self.ELEVATION_ERROR = rospy.get_param('~ELEVATION_ERROR')
+        self.STOP_AND_WAIT = rospy.get_param('~STOP_AND_WAIT')
+        self.SAW_PRIO = rospy.get_param('~SAW_PRIO')
+
+        self.robot_priorities = [0] * self.num_robots
+        self.detected_robots = [None] * self.num_robots
 
         # Robot paths        
 
@@ -70,11 +85,11 @@ class CA:
         elif self.path == 'path3':
             self.path_x = [30]
             self.path_y = [50]
-            self.path_z = [15]
+            self.path_z = [5]
         elif self.path == 'path4':
             self.path_x = [30]
             self.path_y = [50]
-            self.path_z = [5]
+            self.path_z = [15]
         elif self.path == 'path5':
             self.path_x = [50]
             self.path_y = [0]
@@ -122,6 +137,7 @@ class CA:
         self.pub_marker = rospy.Publisher('/' + self.robot_name + '/sphere', Marker, queue_size=1)
         self.pub_velocity = rospy.Publisher('/' + self.robot_name + '/controller/body_velocity_req', BodyVelocityReq, queue_size=1)
         self.pub_initial_position_reached = rospy.Publisher('/' + self.robot_name + '/initial_position_reached', String, queue_size=1)
+        self.pub_priority = rospy.Publisher('/' + self.robot_name + '/priority', Int32, queue_size=1)
 
         # Subscribers
         
@@ -142,7 +158,12 @@ class CA:
                     '/robot' + str(robot) + '/navigator/navigation',
                     NavSts,
                     self.obstacle_detection,
-                    queue_size=1)                         
+                    queue_size=1)
+                rospy.Subscriber(
+                    '/robot' + str(robot) + '/priority',
+                    Int32,
+                    self.update_robot_priority,
+                    queue_size=1)                        
         
     def send_goto_strategy(self, position_x, position_y, position_z, keep_position, linear_velocity):
         """Goto to position x, y, z, at velocity vel."""
@@ -179,25 +200,30 @@ class CA:
                 ipr_msg = String()
                 ipr_msg.data = self.robot_name
 
+                # Publish robot priority for the Stop&Wait strategy aswell
+                priority_msg = Int32()
+                priority_msg.data = self.SAW_PRIO
+
                 # Publish more than once to make sure every robot receives this information
                 rate = rospy.Rate(10)
                 start_time = rospy.Time.now()
                 duration = rospy.Duration(0.5)
-
                 while not rospy.is_shutdown() and rospy.Time.now() < start_time + duration:
                     self.pub_initial_position_reached.publish(ipr_msg)
+                    self.pub_priority.publish(priority_msg)
                     rate.sleep()
                 
             # Increase iterator to navigate through the robot path when it is allowed
-            elif not self.stop_goto and self.stop_keep_position:
+            elif not self.stop_goto and not self.keep_position and self.obj_distance <= self.CRIT_DIST:
                 self.path_iterator += 1
                 self.navigate = True
 
-            # If the robot has finished the robot path then stop navigatin and keep position
+            # If the robot has finished the robot path then stop navigating and keep position
             if self.path_iterator >= len(self.path_x):
+                self.keep_position_srv()
                 self.path_iterator -= 1
                 self.navigate = False
-                self.keep_position_srv()
+                self.final_reached = True               
 
         goto_thread = threading.Thread(target=goto_thread)
         goto_thread.start()
@@ -221,51 +247,73 @@ class CA:
         # Draw security sphere for each robot
         self.draw_sphere(self.pos_x, self.pos_y, self.pos_z)
 
+        # Objective distance
+        self.obj_distance = sqrt((self.path_x[self.path_iterator] - self.pos_x)**2 + (self.path_y[self.path_iterator] - self.pos_y)**2 + (self.path_z[self.path_iterator] - self.pos_z)**2)
+
         # Send every robot to its initial position
         if self.first_time:
             self.first_time = False
-            self.send_goto_strategy(self.initial_x,self.initial_y,self.initial_z, False, 1.5) 
+            self.send_goto_strategy(self.initial_x,self.initial_y,self.initial_z, False, self.GOTO_VEL)             
         
         # Once the initial position has been reached, keep position and wait for the rest of the robots
-        elif self.initial_reached and self.keep_position:
+        elif self.initial_reached and self.keep_position and not self.enable_navigation:
             self.keep_position = False
-            self.keep_position_srv()
+            self.keep_position_srv()            
 
         # When every robot has reached its initial position stop waiting, disable keep position
-        elif self.enable_CA and not self.stop_keep_position:
-            self.stop_keep_position = True
-            self.stop_keep_position_srv()
+        elif self.enable_CA and not self.enable_navigation:
+            self.enable_navigation = True
+            self.stop_keep_position_srv()            
 
         # Navigate through the robot path if all the robots have reached their initial position and there is no obstacle          
-        elif self.navigate and not self.stop_goto:
+        elif self.navigate and not self.stop_goto and not self.final_reached: 
             self.navigate = False
-            self.send_goto_strategy(self.path_x[self.path_iterator],self.path_y[self.path_iterator],self.path_z[self.path_iterator],False, 1.5)
+            self.send_goto_strategy(self.path_x[self.path_iterator],self.path_y[self.path_iterator],self.path_z[self.path_iterator],False, self.GOTO_VEL) 
+
+    def update_robot_priority(self, msg): # Store all robot priorities by robot number
+        # Parse the robot's number from the topic name
+        robot_number = int(msg._connection_header['topic'].split('/')[1].replace('robot', ''))
+        self.robot_priorities[robot_number] = msg.data           
 
     def obstacle_detection(self, msg):
-        if self.enable_CA:
+        if self.enable_CA and not self.final_reached and not self.navigate:
             # Calculate Euclidean distance
             distance = sqrt((msg.position.north - self.pos_x) ** 2 + (msg.position.east - self.pos_y) ** 2 + (msg.position.depth - self.pos_z) ** 2)
+            # Parse the robot's number from the topic name
+            robot_number = int(msg._connection_header['topic'].split('/')[1].replace('robot', ''))
+            # Check distance to detect the robot as an obstacle
             if distance <= self.CRIT_DIST:
-                self.critical_robots.add(msg.header.frame_id)  # Add the robot name to the set
+                self.critical_robots.add(robot_number)  # Add the robot name to the set
+                self.detected_robots[robot_number] = self.robot_priorities[robot_number] # Add robot priority
                 if not self.stop_goto:  # Shutdown goto service
                     self.stop_goto = True
                     self.stop_goto_srv()
 
-                self.potential_fields(distance, msg.position.north, msg.position.east, msg.position.depth)
-            elif msg.header.frame_id in self.critical_robots:  # If the robot was in the critical range and is now no longer
-                self.critical_robots.remove(msg.header.frame_id)  # Remove the robot name from the set
+                # If Stop&Wait strategy is enabled and the priority is the highest then apply potential fields, if it isnt enabled apply potential fields anyway                
+                if (self.STOP_AND_WAIT and self.SAW_PRIO < min(x for x in self.detected_robots if x is not None)) or not self.STOP_AND_WAIT:
+                    if self.keep_position:
+                        self.keep_position = False
+                        self.stop_keep_position_srv()
+
+                    self.potential_fields(distance, msg.position.north, msg.position.east, msg.position.depth)
+                
+                # If the robot is not the one with the highest priority just keep position until it is
+                elif not self.keep_position:
+                    self.keep_position = True
+                    self.keep_position_srv()                    
+
+            elif robot_number in self.critical_robots:  # If the robot was in the critical range and is now no longer
+                self.critical_robots.remove(robot_number)  # Remove the robot name from the set
+                self.detected_robots[robot_number] = None # Remove robot priority
                 if len(self.critical_robots) == 0:  # If there are no robots in the critical range, allow navigation to resume
+                    if self.keep_position: # Shutdown keep position service
+                        self.keep_position = False
+                        self.stop_keep_position_srv()                         
+                        
                     self.stop_goto = False
-                    self.navigate = True  # Resume navigation                 
+                    self.navigate = True  # Resume navigation          
 
     def potential_fields(self, obs_distance, obs_posx, obs_posy, obs_posz):
-        W1 = 1.0
-        W2 = 3.0
-        K_ROT_MAX = 0.3
-        K_ROT_MIN = 0.15
-        V_MAX = 0.5
-        AZIMUTH_ERROR = 0.6
-        ELEVATION_ERROR = 0.3
 
         # Vi magnitude
         Vi = (self.CRIT_DIST - obs_distance)/self.CRIT_DIST
@@ -280,18 +328,15 @@ class CA:
         self.vy_obs += Viy
         self.vz_obs += Viz
 
-        # Objective distance
-        obj_distance = sqrt((self.path_x[self.path_iterator] - self.pos_x)**2 + (self.path_y[self.path_iterator] - self.pos_y)**2 + (self.path_z[self.path_iterator] - self.pos_z)**2)
-
         # Vobjective unit vector
-        vx_obj = (self.path_x[self.path_iterator] - self.pos_x)/obj_distance
-        vy_obj = (self.path_y[self.path_iterator] - self.pos_y)/obj_distance
-        vz_obj = (self.path_z[self.path_iterator] - self.pos_z)/obj_distance
+        vx_obj = (self.path_x[self.path_iterator] - self.pos_x)/self.obj_distance
+        vy_obj = (self.path_y[self.path_iterator] - self.pos_y)/self.obj_distance
+        vz_obj = (self.path_z[self.path_iterator] - self.pos_z)/self.obj_distance
 
         # Final vector
-        vfx = W1*vx_obj + W2*self.vx_obs
-        vfy = W1*vy_obj + W2*self.vy_obs
-        vfz = W1*vz_obj + W2*self.vz_obs        
+        vfx = self.W1*vx_obj + self.W2*self.vx_obs
+        vfy = self.W1*vy_obj + self.W2*self.vy_obs
+        vfz = self.W1*vz_obj + self.W2*self.vz_obs        
 
         # Azimuth and elevation of the final vector
         azimuth = atan2(vfy, vfx)
@@ -318,22 +363,35 @@ class CA:
         set_vel_msg.disable_axis.pitch = True
         set_vel_msg.disable_axis.yaw = False
 
-        set_vel_msg.twist.linear.x = V_MAX if abs(azimuth) <= AZIMUTH_ERROR else 0.0
-        set_vel_msg.twist.linear.y = 0.0
-
-        if elevation >= ELEVATION_ERROR and abs(azimuth) <= AZIMUTH_ERROR:
-            set_vel_msg.twist.linear.z = V_MAX
-        elif elevation < 0 and elevation <= ELEVATION_ERROR and abs(azimuth) <= AZIMUTH_ERROR:
-            set_vel_msg.twist.linear.z = -V_MAX
+        # Check if azimuth error is within the defined threshold
+        if abs(azimuth) <= self.AZIMUTH_ERROR:
+            # Set linear x velocity only if azimuth error is small enough
+            set_vel_msg.twist.linear.x = self.CA_VEL 
+            # Set angular z velocity considering the azimuth error
+            set_vel_msg.twist.angular.z = self.K_ROT_MIN*self.CA_VEL*azimuth
         else:
-            set_vel_msg.twist.linear.z = 0.0
+            # Stop linear x velocity if azimuth error is too large
+            set_vel_msg.twist.linear.x = 0.0
+            # Set angular z velocity considering the azimuth error
+            set_vel_msg.twist.angular.z = self.K_ROT_MAX*self.CA_VEL*azimuth
 
+        # Check if elevation error is within the defined threshold
+        if abs(elevation) <= self.ELEVATION_ERROR:
+            # If elevation error is small enough, don't change z direction
+            set_vel_msg.twist.linear.z = 0.0
+        elif elevation > self.ELEVATION_ERROR:
+            # If robot needs to go up, set positive z velocity
+            set_vel_msg.twist.linear.z = self.CA_VEL
+        else: # elevation < -self.ELEVATION_ERROR
+            # If robot needs to go down, set negative z velocity
+            set_vel_msg.twist.linear.z = -self.CA_VEL
+
+        set_vel_msg.twist.linear.y = 0.0
         set_vel_msg.twist.angular.x = 0.0
         set_vel_msg.twist.angular.y = 0.0
-        set_vel_msg.twist.angular.z = K_ROT_MIN*V_MAX*azimuth if abs(azimuth) <= AZIMUTH_ERROR else K_ROT_MAX*V_MAX*azimuth
  
         self.pub_velocity.publish(set_vel_msg)
-        
+                
     def draw_sphere(self, sphere_x, sphere_y, sphere_z):
         marker = Marker()
         marker.header.frame_id = "/world_ned"
