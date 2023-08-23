@@ -1,17 +1,21 @@
 <launch>
  <!-- Params -->
   <arg name="enableRviz" default="true"/>
-  <arg name="num_robots" default="8"/>
-  <arg name="CRIT_DIST" default="7.0"/>
+  <arg name="num_robots" default="10"/>
+  <arg name="CRIT_DIST" default="30.0"/>
   <arg name="GOTO_VEL" default="1.5"/>
   <arg name="CA_VEL" default="0.5"/>
   <arg name="W1" default="1.0"/>
   <arg name="W2" default="3.0"/>
   <arg name="K_ROT_MAX" default="0.3"/>
   <arg name="K_ROT_MIN" default="0.15"/>
-  <arg name="AZIMUTH_ERROR" default="0.7"/>
-  <arg name="ELEVATION_ERROR" default="0.3"/>
-  <arg name="STOP_AND_WAIT" default="True"/>
+  <arg name="AZIMUTH_ERROR" default="0.6"/>
+  <arg name="ELEVATION_ERROR" default="0.7"/>
+  <arg name="STOP_AND_WAIT" default="False"/>
+  <arg name="ALGOR" default="2"/>
+  <arg name="radius" default="7.0"/>
+  <arg name="time_step" default="0.001"/>
+  <arg name="time_horizon" default="30"/>
 
   <!-- Launch the ASV Simulation -->
   <include  file="$(find multi_robot_system)/launch/turbot_simulation.launch">
@@ -28,9 +32,10 @@
     <param name="path" value="path0"/>
     <param name="num_robots" value="$(arg num_robots)"/>
     <param name="CRIT_DIST" value="$(arg CRIT_DIST)"/>
-    <param name="initial_x" value="0.0"/>
-    <param name="initial_y" value="50.0"/>
+    <param name="initial_x" value="25.0"/>
+    <param name="initial_y" value="0.0"/>
     <param name="initial_z" value="0.0"/>
+    <param name="ALGOR" value="$(arg ALGOR)"/>
     <param name="W1" value="$(arg W1)"/>
     <param name="W2" value="$(arg W2)"/>
     <param name="K_ROT_MAX" value="$(arg K_ROT_MAX)"/>
@@ -39,6 +44,9 @@
     <param name="ELEVATION_ERROR" value="$(arg ELEVATION_ERROR)"/>
     <param name="STOP_AND_WAIT" value="$(arg STOP_AND_WAIT)"/>
     <param name="SAW_PRIO" value="0"/>
+    <param name="radius" value="$(arg radius)"/>
+    <param name="time_step" value="$(arg time_step)"/>
+    <param name="time_horizon" value="$(arg time_horizon)"/>
   </node>
 
   <node name="collision_avoidance_robot1" pkg="collission_avoidance" type="C_A.py" output="screen">
@@ -48,9 +56,10 @@
     <param name="path" value="path1"/>
     <param name="num_robots" value="$(arg num_robots)"/>
     <param name="CRIT_DIST" value="$(arg CRIT_DIST)"/>
-    <param name="initial_x" value="20.0"/>
-    <param name="initial_y" value="50.0"/>
+    <param name="initial_x" value="50.0"/>
+    <param name="initial_y" value="25.0"/>
     <param name="initial_z" value="0.0"/>
+    <param name="ALGOR" value="$(arg ALGOR)"/>
     <param name="W1" value="$(arg W1)"/>
     <param name="W2" value="$(arg W2)"/>
     <param name="K_ROT_MAX" value="$(arg K_ROT_MAX)"/>
@@ -58,7 +67,10 @@
     <param name="AZIMUTH_ERROR" value="$(arg AZIMUTH_ERROR)"/>
     <param name="ELEVATION_ERROR" value="$(arg ELEVATION_ERROR)"/>
     <param name="STOP_AND_WAIT" value="$(arg STOP_AND_WAIT)"/>
-    <param name="SAW_PRIO" value="1"/>    
+    <param name="SAW_PRIO" value="1"/>
+    <param name="radius" value="$(arg radius)"/> 
+    <param name="time_step" value="$(arg time_step)"/> 
+    <param name="time_horizon" value="$(arg time_horizon)"/>  
   </node>
 
   <node name="collision_avoidance_robot2" pkg="collission_avoidance" type="C_A.py" output="screen">
@@ -68,9 +80,10 @@
     <param name="path" value="path2"/>
     <param name="num_robots" value="$(arg num_robots)"/>
     <param name="CRIT_DIST" value="$(arg CRIT_DIST)"/>
-    <param name="initial_x" value="30.0"/>
+    <param name="initial_x" value="25.0"/>
     <param name="initial_y" value="50.0"/>
-    <param name="initial_z" value="10.0"/>
+    <param name="initial_z" value="0.0"/>
+    <param name="ALGOR" value="$(arg ALGOR)"/>
     <param name="W1" value="$(arg W1)"/>
     <param name="W2" value="$(arg W2)"/>
     <param name="K_ROT_MAX" value="$(arg K_ROT_MAX)"/>
@@ -78,7 +91,10 @@
     <param name="AZIMUTH_ERROR" value="$(arg AZIMUTH_ERROR)"/>
     <param name="ELEVATION_ERROR" value="$(arg ELEVATION_ERROR)"/>
     <param name="STOP_AND_WAIT" value="$(arg STOP_AND_WAIT)"/>
-    <param name="SAW_PRIO" value="2"/>   
+    <param name="SAW_PRIO" value="2"/>
+    <param name="radius" value="$(arg radius)"/>   
+    <param name="time_step" value="$(arg time_step)"/>
+    <param name="time_horizon" value="$(arg time_horizon)"/>
   </node>
 
   <node name="collision_avoidance_robot3" pkg="collission_avoidance" type="C_A.py" output="screen">
@@ -88,9 +104,10 @@
     <param name="path" value="path3"/>
     <param name="num_robots" value="$(arg num_robots)"/>
     <param name="CRIT_DIST" value="$(arg CRIT_DIST)"/>
-    <param name="initial_x" value="30.0"/>
-    <param name="initial_y" value="0.0"/>
-    <param name="initial_z" value="15.0"/>
+    <param name="initial_x" value="0.0"/>
+    <param name="initial_y" value="25.0"/>
+    <param name="initial_z" value="0.0"/>
+    <param name="ALGOR" value="$(arg ALGOR)"/>
     <param name="W1" value="$(arg W1)"/>
     <param name="W2" value="$(arg W2)"/>
     <param name="K_ROT_MAX" value="$(arg K_ROT_MAX)"/>
@@ -98,7 +115,10 @@
     <param name="AZIMUTH_ERROR" value="$(arg AZIMUTH_ERROR)"/>
     <param name="ELEVATION_ERROR" value="$(arg ELEVATION_ERROR)"/>
     <param name="STOP_AND_WAIT" value="$(arg STOP_AND_WAIT)"/>
-    <param name="SAW_PRIO" value="3"/>    
+    <param name="SAW_PRIO" value="3"/>
+    <param name="radius" value="$(arg radius)"/>
+    <param name="time_step" value="$(arg time_step)"/>
+    <param name="time_horizon" value="$(arg time_horizon)"/>    
   </node>
 
   <node name="collision_avoidance_robot4" pkg="collission_avoidance" type="C_A.py" output="screen">
@@ -108,9 +128,10 @@
     <param name="path" value="path4"/>
     <param name="num_robots" value="$(arg num_robots)"/>
     <param name="CRIT_DIST" value="$(arg CRIT_DIST)"/>
-    <param name="initial_x" value="30.0"/>
+    <param name="initial_x" value="25.0"/>
     <param name="initial_y" value="0.0"/>
-    <param name="initial_z" value="5.0"/>
+    <param name="initial_z" value="50.0"/>
+    <param name="ALGOR" value="$(arg ALGOR)"/>
     <param name="W1" value="$(arg W1)"/>
     <param name="W2" value="$(arg W2)"/>
     <param name="K_ROT_MAX" value="$(arg K_ROT_MAX)"/>
@@ -118,7 +139,10 @@
     <param name="AZIMUTH_ERROR" value="$(arg AZIMUTH_ERROR)"/>
     <param name="ELEVATION_ERROR" value="$(arg ELEVATION_ERROR)"/>
     <param name="STOP_AND_WAIT" value="$(arg STOP_AND_WAIT)"/>
-    <param name="SAW_PRIO" value="4"/>    
+    <param name="SAW_PRIO" value="4"/>
+    <param name="radius" value="$(arg radius)"/>
+    <param name="time_step" value="$(arg time_step)"/>
+    <param name="time_horizon" value="$(arg time_horizon)"/>    
   </node>
 
   <node name="collision_avoidance_robot5" pkg="collission_avoidance" type="C_A.py" output="screen">
@@ -129,8 +153,9 @@
     <param name="num_robots" value="$(arg num_robots)"/>
     <param name="CRIT_DIST" value="$(arg CRIT_DIST)"/>
     <param name="initial_x" value="50.0"/>
-    <param name="initial_y" value="50.0"/>
-    <param name="initial_z" value="0.0"/>
+    <param name="initial_y" value="25.0"/>
+    <param name="initial_z" value="50.0"/>
+    <param name="ALGOR" value="$(arg ALGOR)"/>
     <param name="W1" value="$(arg W1)"/>
     <param name="W2" value="$(arg W2)"/>
     <param name="K_ROT_MAX" value="$(arg K_ROT_MAX)"/>
@@ -138,7 +163,10 @@
     <param name="AZIMUTH_ERROR" value="$(arg AZIMUTH_ERROR)"/>
     <param name="ELEVATION_ERROR" value="$(arg ELEVATION_ERROR)"/>
     <param name="STOP_AND_WAIT" value="$(arg STOP_AND_WAIT)"/>
-    <param name="SAW_PRIO" value="5"/>    
+    <param name="SAW_PRIO" value="5"/>
+    <param name="radius" value="$(arg radius)"/>
+    <param name="time_step" value="$(arg time_step)"/>
+    <param name="time_horizon" value="$(arg time_horizon)"/>    
   </node>
 
   <node name="collision_avoidance_robot6" pkg="collission_avoidance" type="C_A.py" output="screen">
@@ -148,9 +176,10 @@
     <param name="path" value="path6"/>
     <param name="num_robots" value="$(arg num_robots)"/>
     <param name="CRIT_DIST" value="$(arg CRIT_DIST)"/>
-    <param name="initial_x" value="50.0"/>
-    <param name="initial_y" value="40.0"/>
-    <param name="initial_z" value="0.0"/>
+    <param name="initial_x" value="25.0"/>
+    <param name="initial_y" value="50.0"/>
+    <param name="initial_z" value="50.0"/>
+    <param name="ALGOR" value="$(arg ALGOR)"/>
     <param name="W1" value="$(arg W1)"/>
     <param name="W2" value="$(arg W2)"/>
     <param name="K_ROT_MAX" value="$(arg K_ROT_MAX)"/>
@@ -158,7 +187,10 @@
     <param name="AZIMUTH_ERROR" value="$(arg AZIMUTH_ERROR)"/>
     <param name="ELEVATION_ERROR" value="$(arg ELEVATION_ERROR)"/>
     <param name="STOP_AND_WAIT" value="$(arg STOP_AND_WAIT)"/>
-    <param name="SAW_PRIO" value="6"/>    
+    <param name="SAW_PRIO" value="6"/>
+    <param name="radius" value="$(arg radius)"/> 
+    <param name="time_step" value="$(arg time_step)"/>
+    <param name="time_horizon" value="$(arg time_horizon)"/>   
   </node>
 
   <node name="collision_avoidance_robot7" pkg="collission_avoidance" type="C_A.py" output="screen">
@@ -168,9 +200,10 @@
     <param name="path" value="path7"/>
     <param name="num_robots" value="$(arg num_robots)"/>
     <param name="CRIT_DIST" value="$(arg CRIT_DIST)"/>
-    <param name="initial_x" value="50.0"/>
-    <param name="initial_y" value="30.0"/>
-    <param name="initial_z" value="0.0"/>
+    <param name="initial_x" value="0.0"/>
+    <param name="initial_y" value="25.0"/>
+    <param name="initial_z" value="50.0"/>
+    <param name="ALGOR" value="$(arg ALGOR)"/>
     <param name="W1" value="$(arg W1)"/>
     <param name="W2" value="$(arg W2)"/>
     <param name="K_ROT_MAX" value="$(arg K_ROT_MAX)"/>
@@ -178,7 +211,58 @@
     <param name="AZIMUTH_ERROR" value="$(arg AZIMUTH_ERROR)"/>
     <param name="ELEVATION_ERROR" value="$(arg ELEVATION_ERROR)"/>
     <param name="STOP_AND_WAIT" value="$(arg STOP_AND_WAIT)"/>
-    <param name="SAW_PRIO" value="7"/>   
+    <param name="SAW_PRIO" value="7"/>
+    <param name="radius" value="$(arg radius)"/>  
+    <param name="time_step" value="$(arg time_step)"/>
+    <param name="time_horizon" value="$(arg time_horizon)"/> 
+  </node>
+
+  <node name="collision_avoidance_robot8" pkg="collission_avoidance" type="C_A.py" output="screen">
+    <param name="robot_name" value="robot8"/>
+    <param name="GOTO_VEL" value="$(arg GOTO_VEL)"/>
+    <param name="CA_VEL" value="$(arg CA_VEL)"/>
+    <param name="path" value="path8"/>
+    <param name="num_robots" value="$(arg num_robots)"/>
+    <param name="CRIT_DIST" value="$(arg CRIT_DIST)"/>
+    <param name="initial_x" value="0.0"/>
+    <param name="initial_y" value="25.0"/>
+    <param name="initial_z" value="25.0"/>
+    <param name="ALGOR" value="$(arg ALGOR)"/>
+    <param name="W1" value="$(arg W1)"/>
+    <param name="W2" value="$(arg W2)"/>
+    <param name="K_ROT_MAX" value="$(arg K_ROT_MAX)"/>
+    <param name="K_ROT_MIN" value="$(arg K_ROT_MIN)"/>
+    <param name="AZIMUTH_ERROR" value="$(arg AZIMUTH_ERROR)"/>
+    <param name="ELEVATION_ERROR" value="$(arg ELEVATION_ERROR)"/>
+    <param name="STOP_AND_WAIT" value="$(arg STOP_AND_WAIT)"/>
+    <param name="SAW_PRIO" value="8"/>
+    <param name="radius" value="$(arg radius)"/>   
+    <param name="time_step" value="$(arg time_step)"/>
+    <param name="time_horizon" value="$(arg time_horizon)"/>
+  </node>
+
+  <node name="collision_avoidance_robot9" pkg="collission_avoidance" type="C_A.py" output="screen">
+    <param name="robot_name" value="robot9"/>
+    <param name="GOTO_VEL" value="$(arg GOTO_VEL)"/>
+    <param name="CA_VEL" value="$(arg CA_VEL)"/>
+    <param name="path" value="path9"/>
+    <param name="num_robots" value="$(arg num_robots)"/>
+    <param name="CRIT_DIST" value="$(arg CRIT_DIST)"/>
+    <param name="initial_x" value="50.0"/>
+    <param name="initial_y" value="25.0"/>
+    <param name="initial_z" value="25.0"/>
+    <param name="ALGOR" value="$(arg ALGOR)"/>
+    <param name="W1" value="$(arg W1)"/>
+    <param name="W2" value="$(arg W2)"/>
+    <param name="K_ROT_MAX" value="$(arg K_ROT_MAX)"/>
+    <param name="K_ROT_MIN" value="$(arg K_ROT_MIN)"/>
+    <param name="AZIMUTH_ERROR" value="$(arg AZIMUTH_ERROR)"/>
+    <param name="ELEVATION_ERROR" value="$(arg ELEVATION_ERROR)"/>
+    <param name="STOP_AND_WAIT" value="$(arg STOP_AND_WAIT)"/>
+    <param name="SAW_PRIO" value="9"/>
+    <param name="radius" value="$(arg radius)"/>
+    <param name="time_step" value="$(arg time_step)"/>
+    <param name="time_horizon" value="$(arg time_horizon)"/>  
   </node>
 
   <!-- RViz -->
