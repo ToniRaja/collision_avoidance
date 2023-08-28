@@ -2,20 +2,28 @@
  <!-- Params -->
   <arg name="enableRviz" default="true"/>
   <arg name="num_robots" default="10"/>
-  <arg name="CRIT_DIST" default="30.0"/>
   <arg name="GOTO_VEL" default="1.5"/>
-  <arg name="CA_VEL" default="0.5"/>
+  <!-- ALGOR 1 POTENTIAL FIELDS-->
+  <!-- ALGOR 2 RVO2-3D-->
+  <arg name="ALGOR" default="2"/>
+  <!-- POTENTIAL FIELDS-->
   <arg name="W1" default="1.0"/>
-  <arg name="W2" default="3.0"/>
+  <arg name="W2" default="2.0"/>
+  <!-- STOP&WAIT-->
+  <arg name="STOP_AND_WAIT" default="False"/>
+  <!-- RVO2-3D-->
+  <arg name="time_step" default="0.001"/>
+  <arg name="time_horizon" default="20"/>
+  <!-- CA parameters -->
+  <!-- RVO2-3D CRIT_DIST = 20 sphere radius = 3 -->
+  <!-- Potential fields CRIT_DIST = sphere radius = 7 -->
+  <arg name="sphere_radius" default="3.0"/>
+  <arg name="CA_VEL" default="0.5"/>
   <arg name="K_ROT_MAX" default="0.3"/>
   <arg name="K_ROT_MIN" default="0.15"/>
   <arg name="AZIMUTH_ERROR" default="0.6"/>
   <arg name="ELEVATION_ERROR" default="0.7"/>
-  <arg name="STOP_AND_WAIT" default="False"/>
-  <arg name="ALGOR" default="2"/>
-  <arg name="radius" default="7.0"/>
-  <arg name="time_step" default="0.001"/>
-  <arg name="time_horizon" default="30"/>
+  <arg name="CRIT_DIST" default="20.0"/>
 
   <!-- Launch the ASV Simulation -->
   <include  file="$(find multi_robot_system)/launch/turbot_simulation.launch">
@@ -24,17 +32,16 @@
     <arg name="robot_name" value="$(arg robot_6)"/> -->
   </include>
 
+  <!-- Load Robot Path -->
+  <rosparam file="$(find collission_avoidance)/config/big_exploration.yaml" command="load"/>
+
   <!-- Launch script -->
   <node name="collision_avoidance_robot0" pkg="collission_avoidance" type="C_A.py" output="screen">
     <param name="robot_name" value="robot0"/>
     <param name="GOTO_VEL" value="$(arg GOTO_VEL)"/>
     <param name="CA_VEL" value="$(arg CA_VEL)"/>
-    <param name="path" value="path0"/>
     <param name="num_robots" value="$(arg num_robots)"/>
     <param name="CRIT_DIST" value="$(arg CRIT_DIST)"/>
-    <param name="initial_x" value="25.0"/>
-    <param name="initial_y" value="0.0"/>
-    <param name="initial_z" value="0.0"/>
     <param name="ALGOR" value="$(arg ALGOR)"/>
     <param name="W1" value="$(arg W1)"/>
     <param name="W2" value="$(arg W2)"/>
@@ -44,21 +51,18 @@
     <param name="ELEVATION_ERROR" value="$(arg ELEVATION_ERROR)"/>
     <param name="STOP_AND_WAIT" value="$(arg STOP_AND_WAIT)"/>
     <param name="SAW_PRIO" value="0"/>
-    <param name="radius" value="$(arg radius)"/>
+    <param name="sphere_radius" value="$(arg sphere_radius)"/>
     <param name="time_step" value="$(arg time_step)"/>
     <param name="time_horizon" value="$(arg time_horizon)"/>
+    <param name="path" value="path0"/>
   </node>
 
   <node name="collision_avoidance_robot1" pkg="collission_avoidance" type="C_A.py" output="screen">
     <param name="robot_name" value="robot1"/>
     <param name="GOTO_VEL" value="$(arg GOTO_VEL)"/>
     <param name="CA_VEL" value="$(arg CA_VEL)"/>
-    <param name="path" value="path1"/>
     <param name="num_robots" value="$(arg num_robots)"/>
     <param name="CRIT_DIST" value="$(arg CRIT_DIST)"/>
-    <param name="initial_x" value="50.0"/>
-    <param name="initial_y" value="25.0"/>
-    <param name="initial_z" value="0.0"/>
     <param name="ALGOR" value="$(arg ALGOR)"/>
     <param name="W1" value="$(arg W1)"/>
     <param name="W2" value="$(arg W2)"/>
@@ -68,21 +72,18 @@
     <param name="ELEVATION_ERROR" value="$(arg ELEVATION_ERROR)"/>
     <param name="STOP_AND_WAIT" value="$(arg STOP_AND_WAIT)"/>
     <param name="SAW_PRIO" value="1"/>
-    <param name="radius" value="$(arg radius)"/> 
+    <param name="sphere_radius" value="$(arg sphere_radius)"/>
     <param name="time_step" value="$(arg time_step)"/> 
-    <param name="time_horizon" value="$(arg time_horizon)"/>  
+    <param name="time_horizon" value="$(arg time_horizon)"/>
+    <param name="path" value="path1"/>  
   </node>
 
   <node name="collision_avoidance_robot2" pkg="collission_avoidance" type="C_A.py" output="screen">
     <param name="robot_name" value="robot2"/>
     <param name="GOTO_VEL" value="$(arg GOTO_VEL)"/>
     <param name="CA_VEL" value="$(arg CA_VEL)"/>
-    <param name="path" value="path2"/>
     <param name="num_robots" value="$(arg num_robots)"/>
     <param name="CRIT_DIST" value="$(arg CRIT_DIST)"/>
-    <param name="initial_x" value="25.0"/>
-    <param name="initial_y" value="50.0"/>
-    <param name="initial_z" value="0.0"/>
     <param name="ALGOR" value="$(arg ALGOR)"/>
     <param name="W1" value="$(arg W1)"/>
     <param name="W2" value="$(arg W2)"/>
@@ -92,21 +93,18 @@
     <param name="ELEVATION_ERROR" value="$(arg ELEVATION_ERROR)"/>
     <param name="STOP_AND_WAIT" value="$(arg STOP_AND_WAIT)"/>
     <param name="SAW_PRIO" value="2"/>
-    <param name="radius" value="$(arg radius)"/>   
+    <param name="sphere_radius" value="$(arg sphere_radius)"/>
     <param name="time_step" value="$(arg time_step)"/>
     <param name="time_horizon" value="$(arg time_horizon)"/>
+    <param name="path" value="path2"/>
   </node>
 
   <node name="collision_avoidance_robot3" pkg="collission_avoidance" type="C_A.py" output="screen">
     <param name="robot_name" value="robot3"/>
     <param name="GOTO_VEL" value="$(arg GOTO_VEL)"/>
     <param name="CA_VEL" value="$(arg CA_VEL)"/>
-    <param name="path" value="path3"/>
     <param name="num_robots" value="$(arg num_robots)"/>
     <param name="CRIT_DIST" value="$(arg CRIT_DIST)"/>
-    <param name="initial_x" value="0.0"/>
-    <param name="initial_y" value="25.0"/>
-    <param name="initial_z" value="0.0"/>
     <param name="ALGOR" value="$(arg ALGOR)"/>
     <param name="W1" value="$(arg W1)"/>
     <param name="W2" value="$(arg W2)"/>
@@ -116,21 +114,18 @@
     <param name="ELEVATION_ERROR" value="$(arg ELEVATION_ERROR)"/>
     <param name="STOP_AND_WAIT" value="$(arg STOP_AND_WAIT)"/>
     <param name="SAW_PRIO" value="3"/>
-    <param name="radius" value="$(arg radius)"/>
+    <param name="sphere_radius" value="$(arg sphere_radius)"/>
     <param name="time_step" value="$(arg time_step)"/>
-    <param name="time_horizon" value="$(arg time_horizon)"/>    
+    <param name="time_horizon" value="$(arg time_horizon)"/>
+    <param name="path" value="path3"/>    
   </node>
 
   <node name="collision_avoidance_robot4" pkg="collission_avoidance" type="C_A.py" output="screen">
     <param name="robot_name" value="robot4"/>
     <param name="GOTO_VEL" value="$(arg GOTO_VEL)"/>
     <param name="CA_VEL" value="$(arg CA_VEL)"/>
-    <param name="path" value="path4"/>
     <param name="num_robots" value="$(arg num_robots)"/>
     <param name="CRIT_DIST" value="$(arg CRIT_DIST)"/>
-    <param name="initial_x" value="25.0"/>
-    <param name="initial_y" value="0.0"/>
-    <param name="initial_z" value="50.0"/>
     <param name="ALGOR" value="$(arg ALGOR)"/>
     <param name="W1" value="$(arg W1)"/>
     <param name="W2" value="$(arg W2)"/>
@@ -140,21 +135,18 @@
     <param name="ELEVATION_ERROR" value="$(arg ELEVATION_ERROR)"/>
     <param name="STOP_AND_WAIT" value="$(arg STOP_AND_WAIT)"/>
     <param name="SAW_PRIO" value="4"/>
-    <param name="radius" value="$(arg radius)"/>
+    <param name="sphere_radius" value="$(arg sphere_radius)"/>
     <param name="time_step" value="$(arg time_step)"/>
-    <param name="time_horizon" value="$(arg time_horizon)"/>    
+    <param name="time_horizon" value="$(arg time_horizon)"/>
+    <param name="path" value="path4"/>    
   </node>
 
   <node name="collision_avoidance_robot5" pkg="collission_avoidance" type="C_A.py" output="screen">
     <param name="robot_name" value="robot5"/>
     <param name="GOTO_VEL" value="$(arg GOTO_VEL)"/>
     <param name="CA_VEL" value="$(arg CA_VEL)"/>
-    <param name="path" value="path5"/>
     <param name="num_robots" value="$(arg num_robots)"/>
     <param name="CRIT_DIST" value="$(arg CRIT_DIST)"/>
-    <param name="initial_x" value="50.0"/>
-    <param name="initial_y" value="25.0"/>
-    <param name="initial_z" value="50.0"/>
     <param name="ALGOR" value="$(arg ALGOR)"/>
     <param name="W1" value="$(arg W1)"/>
     <param name="W2" value="$(arg W2)"/>
@@ -164,21 +156,18 @@
     <param name="ELEVATION_ERROR" value="$(arg ELEVATION_ERROR)"/>
     <param name="STOP_AND_WAIT" value="$(arg STOP_AND_WAIT)"/>
     <param name="SAW_PRIO" value="5"/>
-    <param name="radius" value="$(arg radius)"/>
+    <param name="sphere_radius" value="$(arg sphere_radius)"/>
     <param name="time_step" value="$(arg time_step)"/>
-    <param name="time_horizon" value="$(arg time_horizon)"/>    
+    <param name="time_horizon" value="$(arg time_horizon)"/>
+    <param name="path" value="path5"/>    
   </node>
 
   <node name="collision_avoidance_robot6" pkg="collission_avoidance" type="C_A.py" output="screen">
     <param name="robot_name" value="robot6"/>
     <param name="GOTO_VEL" value="$(arg GOTO_VEL)"/>
     <param name="CA_VEL" value="$(arg CA_VEL)"/>
-    <param name="path" value="path6"/>
     <param name="num_robots" value="$(arg num_robots)"/>
     <param name="CRIT_DIST" value="$(arg CRIT_DIST)"/>
-    <param name="initial_x" value="25.0"/>
-    <param name="initial_y" value="50.0"/>
-    <param name="initial_z" value="50.0"/>
     <param name="ALGOR" value="$(arg ALGOR)"/>
     <param name="W1" value="$(arg W1)"/>
     <param name="W2" value="$(arg W2)"/>
@@ -188,21 +177,18 @@
     <param name="ELEVATION_ERROR" value="$(arg ELEVATION_ERROR)"/>
     <param name="STOP_AND_WAIT" value="$(arg STOP_AND_WAIT)"/>
     <param name="SAW_PRIO" value="6"/>
-    <param name="radius" value="$(arg radius)"/> 
+    <param name="sphere_radius" value="$(arg sphere_radius)"/> 
     <param name="time_step" value="$(arg time_step)"/>
-    <param name="time_horizon" value="$(arg time_horizon)"/>   
+    <param name="time_horizon" value="$(arg time_horizon)"/>
+    <param name="path" value="path6"/>   
   </node>
 
   <node name="collision_avoidance_robot7" pkg="collission_avoidance" type="C_A.py" output="screen">
     <param name="robot_name" value="robot7"/>
     <param name="GOTO_VEL" value="$(arg GOTO_VEL)"/>
     <param name="CA_VEL" value="$(arg CA_VEL)"/>
-    <param name="path" value="path7"/>
     <param name="num_robots" value="$(arg num_robots)"/>
     <param name="CRIT_DIST" value="$(arg CRIT_DIST)"/>
-    <param name="initial_x" value="0.0"/>
-    <param name="initial_y" value="25.0"/>
-    <param name="initial_z" value="50.0"/>
     <param name="ALGOR" value="$(arg ALGOR)"/>
     <param name="W1" value="$(arg W1)"/>
     <param name="W2" value="$(arg W2)"/>
@@ -212,21 +198,18 @@
     <param name="ELEVATION_ERROR" value="$(arg ELEVATION_ERROR)"/>
     <param name="STOP_AND_WAIT" value="$(arg STOP_AND_WAIT)"/>
     <param name="SAW_PRIO" value="7"/>
-    <param name="radius" value="$(arg radius)"/>  
+    <param name="sphere_radius" value="$(arg sphere_radius)"/> 
     <param name="time_step" value="$(arg time_step)"/>
-    <param name="time_horizon" value="$(arg time_horizon)"/> 
+    <param name="time_horizon" value="$(arg time_horizon)"/>
+    <param name="path" value="path7"/> 
   </node>
 
   <node name="collision_avoidance_robot8" pkg="collission_avoidance" type="C_A.py" output="screen">
     <param name="robot_name" value="robot8"/>
     <param name="GOTO_VEL" value="$(arg GOTO_VEL)"/>
     <param name="CA_VEL" value="$(arg CA_VEL)"/>
-    <param name="path" value="path8"/>
     <param name="num_robots" value="$(arg num_robots)"/>
     <param name="CRIT_DIST" value="$(arg CRIT_DIST)"/>
-    <param name="initial_x" value="0.0"/>
-    <param name="initial_y" value="25.0"/>
-    <param name="initial_z" value="25.0"/>
     <param name="ALGOR" value="$(arg ALGOR)"/>
     <param name="W1" value="$(arg W1)"/>
     <param name="W2" value="$(arg W2)"/>
@@ -236,21 +219,18 @@
     <param name="ELEVATION_ERROR" value="$(arg ELEVATION_ERROR)"/>
     <param name="STOP_AND_WAIT" value="$(arg STOP_AND_WAIT)"/>
     <param name="SAW_PRIO" value="8"/>
-    <param name="radius" value="$(arg radius)"/>   
+    <param name="sphere_radius" value="$(arg sphere_radius)"/>
     <param name="time_step" value="$(arg time_step)"/>
     <param name="time_horizon" value="$(arg time_horizon)"/>
+    <param name="path" value="path8"/>
   </node>
 
   <node name="collision_avoidance_robot9" pkg="collission_avoidance" type="C_A.py" output="screen">
     <param name="robot_name" value="robot9"/>
     <param name="GOTO_VEL" value="$(arg GOTO_VEL)"/>
     <param name="CA_VEL" value="$(arg CA_VEL)"/>
-    <param name="path" value="path9"/>
     <param name="num_robots" value="$(arg num_robots)"/>
     <param name="CRIT_DIST" value="$(arg CRIT_DIST)"/>
-    <param name="initial_x" value="50.0"/>
-    <param name="initial_y" value="25.0"/>
-    <param name="initial_z" value="25.0"/>
     <param name="ALGOR" value="$(arg ALGOR)"/>
     <param name="W1" value="$(arg W1)"/>
     <param name="W2" value="$(arg W2)"/>
@@ -260,11 +240,16 @@
     <param name="ELEVATION_ERROR" value="$(arg ELEVATION_ERROR)"/>
     <param name="STOP_AND_WAIT" value="$(arg STOP_AND_WAIT)"/>
     <param name="SAW_PRIO" value="9"/>
-    <param name="radius" value="$(arg radius)"/>
+    <param name="sphere_radius" value="$(arg sphere_radius)"/>
     <param name="time_step" value="$(arg time_step)"/>
-    <param name="time_horizon" value="$(arg time_horizon)"/>  
+    <param name="time_horizon" value="$(arg time_horizon)"/>
+    <param name="path" value="path9"/>  
   </node>
 
+  <node name="central_visualizer" pkg="collission_avoidance" type="central_visualizer.py" output="screen">
+    <param name="num_robots" value="$(arg num_robots)"/>
+  </node>
+  
   <!-- RViz -->
   <node if="$(arg enableRviz)" pkg="rviz" type="rviz" name="rviz" args="-d $(find multi_robot_system)/scene/MRS.rviz"/>
 
