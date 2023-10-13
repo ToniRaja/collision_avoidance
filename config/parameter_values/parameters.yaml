@@ -1,0 +1,19 @@
+parameter_values:
+- name: ALGOR
+  value: 2
+- name: STOP_AND_WAIT
+  value: false
+- name: AZIMUTH_ERROR
+  value: 0.4
+- name: CRIT_DIST
+  value: 6.0
+- name: W1
+  value: 1.0
+- name: W2
+  value: 0.5
+- name: time_step
+  value: 0.1
+- name: time_horizon
+  value: 5.0
+- name: DES_VEL
+  value: 0.5
