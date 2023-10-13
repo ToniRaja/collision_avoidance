@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
+# 3D animation of the robots path
+
 import rospy
 from std_msgs.msg import String
 from geometry_msgs.msg import Point
@@ -70,9 +73,9 @@ def main():
     
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
-    #ax.set_xlim([-25, 25])
-    #ax.set_ylim([-25, 25])
-    #ax.set_zlim([0, 50])
+    ax.set_xlim([-50, 50])
+    ax.set_ylim([-50, 50])
+    ax.set_zlim([0, 50])
     
     ani = animation.FuncAnimation(fig, update_fig, fargs=(trajectories, ax), interval=1000)
     
