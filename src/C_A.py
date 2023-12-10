@@ -589,12 +589,12 @@ class CA:
         
         # if azimuth is inside the threshold and vf points behind then move backwards while turning
         if abs(azimuth) <= self.AZIMUTH_ERROR and vf_behind:
-            self.set_vel_msg.twist.linear.x = -min(sqrt(vfx**2 + vfy**2), self.DES_VEL)
+            self.set_vel_msg.twist.linear.x = -self.DES_VEL
             self.set_vel_msg.twist.angular.z = self.K_ROT_MIN*self.ROT_VEL*azimuth
         
         # if azimuth is inside the threshold and vf points forward then move forward while turning
         elif abs(azimuth) <= self.AZIMUTH_ERROR and not vf_behind:
-            self.set_vel_msg.twist.linear.x = min(sqrt(vfx**2 + vfy**2), self.DES_VEL)
+            self.set_vel_msg.twist.linear.x = self.DES_VEL
             self.set_vel_msg.twist.angular.z = self.K_ROT_MIN*self.ROT_VEL*azimuth
         
         # Otherwise stop and rotate until azimuth is inside the threshold           
@@ -603,10 +603,10 @@ class CA:
             self.set_vel_msg.twist.angular.z = self.K_ROT_MAX*self.ROT_VEL*azimuth
 
         if vfz < 0:
-            self.set_vel_msg.twist.linear.z = max(vfz, -self.DES_VEL)
+            self.set_vel_msg.twist.linear.z = -self.DES_VEL
 
         else:
-            self.set_vel_msg.twist.linear.z = min(vfz, self.DES_VEL)
+            self.set_vel_msg.twist.linear.z = self.DES_VEL
 
         self.set_vel_msg.twist.linear.y = 0.0
         self.set_vel_msg.twist.angular.x = 0.0
