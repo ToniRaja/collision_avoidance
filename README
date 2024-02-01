@@ -1,3 +1,5 @@
 Python wrapper for the RVO2-3D library by: https://github.com/mtreml/Python-RVO2-3D/tree/master
 
 src/C_A.py is the main code file that implements the collision avoidance algorithms and the stop-and-wait strategy.
+
+[![Alt text](https://youtu.be/pciUMiGTIqI.jpg)](https://youtu.be/pciUMiGTIqI?si=Adslay0y_wv7Vk_F)
