@@ -1,7 +1,13 @@
-The code in this repository was utilized for the completion of my Master's Thesis titled "Implementation of Obstacle Avoidance Algorithms for Underwater Multi-Robot Systems". The accompanying documentation can be found in the file AntoniRajaMateosTFM_MUSI.pdf
+The code within this repository was utilized in the completion of my Master's Thesis entitled "Implementation of Obstacle Avoidance Algorithms for Underwater Multi-Robot Systems." The accompanying documentation is available in the file named "AntoniRajaMateosTFM_MUSI.pdf."
 
-[![](https://markdown-videos.deta.dev/youtube/pciUMiGTIqI)](https://youtu.be/pciUMiGTIqI?si=LVZ00Tqw5OoSIfZh)
+The following video demonstrates the behavior of two Autonomous Underwater Vehicles (AUVs) when encountering obstacles, employing the Artificial Potential Fields (APF) algorithm:
 
-Python wrapper for the RVO2-3D library by: https://github.com/mtreml/Python-RVO2-3D/tree/master
+[![Watch the video](https://img.youtube.com/vi/pciUMiGTIqI/0.jpg)](https://www.youtube.com/watch?v=pciUMiGTIqI)
 
-src/C_A.py is the main code file that implements the collision avoidance algorithms and the stop-and-wait strategy.
+Additionally, presented is a multi-robot system composed of AUVs navigating using the Artificial Potential Fields (APF) algorithm, Optimal Reciprocal Collision Avoidance (ORCA), and the Stop-and-Wait (SAW) strategy:
+
+[![Watch the video](https://img.youtube.com/vi/nx91azvIHdKoGpjs/1.jpg)](https://youtu.be/nRjDk9Kffbk?si=nx91azvIHdKoGpjs)
+
+The main code file implementing the collision avoidance algorithms and the stop-and-wait strategy is located at src/C_A.py.
+
+For the Python wrapper used with the RVO2-3D library, please refer to the following link: https://github.com/mtreml/Python-RVO2-3D/tree/master
