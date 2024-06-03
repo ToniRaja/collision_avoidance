@@ -1,7 +1,7 @@
-The code in this repository has been utilized for the completion of my Master's Thesis titled "Implementation of Obstacle Avoidance Algorithms for Underwater Multi-Robot Systems". The documentation can be found in the file AntoniRajaMateosTFM_MUSI.pdf
+The code in this repository was utilized for the completion of my Master's Thesis titled "Implementation of Obstacle Avoidance Algorithms for Underwater Multi-Robot Systems". The accompanying documentation can be found in the file AntoniRajaMateosTFM_MUSI.pdf
+
+[![](https://markwdown-videos.data.dev/youtube/pciUMiGTIqI)](https://youtu.be/pciUMiGTIqI?si=LVZ00Tqw5OoSIfZh)
 
 Python wrapper for the RVO2-3D library by: https://github.com/mtreml/Python-RVO2-3D/tree/master
 
 src/C_A.py is the main code file that implements the collision avoidance algorithms and the stop-and-wait strategy.
-
-[![Alt text](https://www.youtube.com/watch?v=pciUMiGTIqI.jpg)](https://youtu.be/pciUMiGTIqI?si=Adslay0y_wv7Vk_F)
