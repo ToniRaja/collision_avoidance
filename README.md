@@ -6,7 +6,7 @@ The following video demonstrates the behavior of two Autonomous Underwater Vehic
 
 Additionally, presented is a multi-robot system composed of AUVs navigating using the Artificial Potential Fields (APF) algorithm, Optimal Reciprocal Collision Avoidance (ORCA), and the Stop-and-Wait (SAW) strategy:
 
-[![Watch the video](https://i9.ytimg.com/vi/nRjDk9Kffbk/mqdefault.jpg?sqp=CLjo97IG-oaymwEmCMACELQB8quKqQMa8AEB-AH-CYAC0AWKAgwIABABGEAgWihyMA8=&rs=AOn4CLBrF8EYXIjA9z0sWsXrB9CvAACIqA)](https://youtu.be/nRjDk9Kffbk?si=nx91azvIHdKoGpjs)
+[![Watch the video](https://img.youtube.com/vi/nx91azvIHdKoGpjs/0.jpg)](https://youtu.be/nRjDk9Kffbk?si=nx91azvIHdKoGpjs)
 
 The main code file implementing the collision avoidance algorithms and the stop-and-wait strategy is located at src/C_A.py.
 
